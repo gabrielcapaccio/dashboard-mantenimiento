@@ -145,10 +145,11 @@ const App: React.FC = () => {
       </div>
       {/* tabla y resto */}
       <div className="text-xs text-gray-500 mt-4">
-        <p>• Desarrollado por el Departamento de IA del Sanatorio Boratti.</p>
+        <p>• Desarrollado por el Departamento de IA del Sanatorio.</p>
       </div>
     </div>
   );
 };
 
 export default App;
+
