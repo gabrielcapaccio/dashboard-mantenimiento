@@ -35,6 +35,11 @@ function formatDate(ts?: string | null) {
 
 function classNames(...xs: (string | false | undefined)[]) { return xs.filter(Boolean).join(" "); }
 
+// Función para normalizar texto (quita acentos y convierte a minúsculas)
+function normalize(s?: string) {
+  return s?.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+}
+
 function toCSV(rows: Pedido[]) {
   const headers = ["fecha_creacion","usuario_creacion","problema","sector","urgencia","responsable","imagenes","estado","fecha_resolucion","usuario_resolucion","comentario_responsable"];
   const esc = (v: unknown) =>
@@ -62,27 +67,27 @@ function toCSV(rows: Pedido[]) {
   return lines.join("\n");
 }
 
-// Etiqueta/Pastilla con tonos suaves
+// Etiqueta/Pastilla con tonos coherentes con los KPIs
 const Pill: React.FC<{ children: React.ReactNode; intent?: "ok" | "warn" | "crit" | "muted" }>
   = ({ children, intent = "muted" }) => (
   <span className={classNames(
-    "inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium border",
-    intent === "ok" && "bg-green-50 text-green-700 border-green-100",
-    intent === "warn" && "bg-yellow-50 text-yellow-800 border-yellow-100",
-    intent === "crit" && "bg-red-50 text-red-700 border-red-100",
+    "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold border shadow-sm",
+    intent === "ok" && "bg-green-100 text-green-800 border-green-200",
+    intent === "warn" && "bg-yellow-100 text-yellow-800 border-yellow-200",
+    intent === "crit" && "bg-red-100 text-red-800 border-red-200",
     intent === "muted" && "bg-gray-100 text-gray-700 border-gray-200"
   )}>{children}</span>
 );
 
-// Card con tono por color (verde/amarillo/rojo/gris)
+// Card con tono por color y efectos mejorados
 const Card: React.FC<{ title: string; color: "green" | "yellow" | "red" | "gray"; icon?: React.ReactNode }>
   = ({ title, color, icon, children }) => (
   <div className={classNames(
-    "rounded-2xl shadow-sm border p-4",
-    color === "green" && "bg-green-50 border-green-100 text-green-900",
-    color === "yellow" && "bg-yellow-50 border-yellow-100 text-yellow-900",
-    color === "red" && "bg-red-50 border-red-100 text-red-900",
-    color === "gray" && "bg-white border-gray-200 text-gray-900"
+    "rounded-2xl shadow-lg border p-5 transition-all duration-200 hover:shadow-xl hover:scale-105",
+    color === "green" && "bg-gradient-to-br from-green-50 to-green-100/50 border-green-200 text-green-900",
+    color === "yellow" && "bg-gradient-to-br from-yellow-50 to-yellow-100/50 border-yellow-200 text-yellow-900",
+    color === "red" && "bg-gradient-to-br from-red-50 to-red-100/50 border-red-200 text-red-900",
+    color === "gray" && "bg-gradient-to-br from-white to-gray-50/50 border-gray-200 text-gray-900"
   )}>
     <div className="flex items-center gap-3">
       {icon}
@@ -92,10 +97,10 @@ const Card: React.FC<{ title: string; color: "green" | "yellow" | "red" | "gray"
   </div>
 );
 
-// Select simple
+// Select mejorado
 const Select: React.FC<{ value: string; onChange: (v: string) => void; options: string[]; placeholder: string; }>
   = ({ value, onChange, options, placeholder }) => (
-  <select className="border rounded-xl px-3 py-2 text-sm bg-white" value={value} onChange={(e) => onChange(e.target.value)}>
+  <select className="border border-gray-200 rounded-xl px-3 py-2 text-sm bg-white shadow-sm hover:border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all" value={value} onChange={(e) => onChange(e.target.value)}>
     <option value="">{placeholder}</option>
     {options.map((o) => (<option key={o} value={o}>{o}</option>))}
   </select>
@@ -169,37 +174,38 @@ export default function App() {
 
   const filtered = rows; // ya filtramos en el SELECT
 
+  // KPIs con normalización mejorada para urgencias
   const kpis = useMemo(() => {
     const total = filtered.length;
     const pend = filtered.filter(r => r.estado === "Pendiente").length;
     const res = filtered.filter(r => r.estado === "Resuelto").length;
-    const leves = filtered.filter(r => r.urgencia?.toLowerCase() === "leve").length;
-    const moderadas = filtered.filter(r => r.urgencia?.toLowerCase() === "moderada").length;
-    const criticas = filtered.filter(r => r.urgencia?.toLowerCase().startsWith("crit")).length;
+    const leves = filtered.filter(r => normalize(r.urgencia) === "leve").length;
+    const moderadas = filtered.filter(r => normalize(r.urgencia) === "moderada").length;
+    const criticas = filtered.filter(r => normalize(r.urgencia)?.startsWith("crit")).length;
     return { total, pend, res, leves, moderadas, criticas };
   }, [filtered]);
 
   return (
-    <div className="min-h-screen bg-gray-50 text-gray-900">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50/30 text-gray-900">
       <div className="max-w-7xl mx-auto p-4 md:p-6">
         {/* Header */}
-        <div className="flex items-center justify-between gap-4 mb-6">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-2xl bg-gray-900 flex items-center justify-center">
-              <Wrench className="w-5 h-5 text-white" />
+        <div className="flex items-center justify-between gap-4 mb-8 bg-white/70 backdrop-blur-sm rounded-2xl p-6 border border-white/20 shadow-lg">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-600 to-blue-700 flex items-center justify-center shadow-lg">
+              <Wrench className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h1 className="text-xl md:text-2xl font-bold">Dashboard de Mantenimiento</h1>
-              <p className="text-xs md:text-sm text-gray-500">Tabla: {SCHEMA}.{TABLE_NAME}</p>
+              <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">Dashboard de Mantenimiento</h1>
+              <p className="text-sm text-gray-600">Tabla: {SCHEMA}.{TABLE_NAME}</p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <button onClick={fetchRows} className="inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm bg-gray-900 text-white hover:bg-black">
+          <div className="flex items-center gap-3">
+            <button onClick={fetchRows} className="inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 shadow-lg hover:shadow-xl transition-all duration-200">
               <RefreshCcw className="w-4 h-4" /> Recargar
             </button>
             <button
               onClick={() => { const csv = toCSV(filtered); const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" }); const url = URL.createObjectURL(blob); const a = document.createElement("a"); a.href = url; a.download = `mantenimiento_${new Date().toISOString().slice(0,10)}.csv`; a.click(); URL.revokeObjectURL(url); }}
-              className="inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm hover:bg-gray-100"
+              className="inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 hover:border-gray-300 shadow-sm hover:shadow-md transition-all duration-200"
             >
               <Download className="w-4 h-4" /> Exportar CSV
             </button>
@@ -207,11 +213,11 @@ export default function App() {
         </div>
 
         {/* Filtros */}
-        <div className="grid grid-cols-1 md:grid-cols-6 gap-3 items-end mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-6 gap-4 items-end mb-8">
           <div className="md:col-span-2">
-            <div className="flex items-center gap-2 border rounded-xl px-3 py-2 bg-white">
-              <Search className="w-4 h-4" />
-              <input className="outline-none text-sm w-full" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Buscar por problema…" />
+            <div className="flex items-center gap-3 border border-gray-200 rounded-xl px-4 py-3 bg-white shadow-sm hover:shadow-md transition-all duration-200 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-200">
+              <Search className="w-4 h-4 text-gray-400" />
+              <input className="outline-none text-sm w-full placeholder-gray-400" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Buscar por problema…" />
             </div>
           </div>
           <Select value={estado} onChange={setEstado} options={["Pendiente","Resuelto"]} placeholder="Estado" />
@@ -221,48 +227,51 @@ export default function App() {
         </div>
 
         {/* KPIs */}
-        <div className="grid grid-cols-2 md:grid-cols-6 gap-3 mb-6">
-          <Card title="Total" color="gray" icon={<Filter className="w-4 h-4" />}>{kpis.total}</Card>
-          <Card title="Pendientes" color="red" icon={<AlertTriangle className="w-4 h-4" />}>{kpis.pend}</Card>
-          <Card title="Resueltos" color="green" icon={<CheckCircle2 className="w-4 h-4" />}>{kpis.res}</Card>
+        <div className="grid grid-cols-2 md:grid-cols-6 gap-4 mb-8">
+          <Card title="Total" color="gray" icon={<Filter className="w-5 h-5" />}>{kpis.total}</Card>
+          <Card title="Pendientes" color="red" icon={<AlertTriangle className="w-5 h-5" />}>{kpis.pend}</Card>
+          <Card title="Resueltos" color="green" icon={<CheckCircle2 className="w-5 h-5" />}>{kpis.res}</Card>
           <Card title="Leves" color="green">{kpis.leves}</Card>
           <Card title="Moderadas" color="yellow">{kpis.moderadas}</Card>
           <Card title="Críticas" color="red">{kpis.criticas}</Card>
         </div>
 
         {/* Tabla */}
-        <div className="overflow-x-auto rounded-2xl border bg-white">
+        <div className="overflow-x-auto rounded-2xl border border-gray-200 bg-white shadow-lg">
           <table className="min-w-full text-sm">
-            <thead className="bg-gray-50 text-gray-700">
+            <thead className="bg-gradient-to-r from-gray-50 to-gray-100 text-gray-700">
               <tr>
-                <th className="px-4 py-3 text-left font-semibold">Creado</th>
-                <th className="px-4 py-3 text-left font-semibold">Problema</th>
-                <th className="px-4 py-3 text-left font-semibold">Sector</th>
-                <th className="px-4 py-3 text-left font-semibold">Urgencia</th>
-                <th className="px-4 py-3 text-left font-semibold">Responsable</th>
-                <th className="px-4 py-3 text-left font-semibold">Estado</th>
-                <th className="px-4 py-3 text-left font-semibold">Resuelto</th>
-                <th className="px-4 py-3 text-left font-semibold">Imágenes</th>
+                <th className="px-6 py-4 text-left font-semibold">Creado</th>
+                <th className="px-6 py-4 text-left font-semibold">Problema</th>
+                <th className="px-6 py-4 text-left font-semibold">Sector</th>
+                <th className="px-6 py-4 text-left font-semibold">Urgencia</th>
+                <th className="px-6 py-4 text-left font-semibold">Responsable</th>
+                <th className="px-6 py-4 text-left font-semibold">Estado</th>
+                <th className="px-6 py-4 text-left font-semibold">Resuelto</th>
+                <th className="px-6 py-4 text-left font-semibold">Imágenes</th>
               </tr>
             </thead>
             <tbody>
-              {loading && (<tr><td colSpan={8} className="px-4 py-8 text-center text-gray-500"><Loader2 className="w-4 h-4 animate-spin inline mr-2" />Cargando…</td></tr>)}
-              {error && !loading && (<tr><td colSpan={8} className="px-4 py-6 text-center text-red-600">{error}</td></tr>)}
-              {!loading && !error && filtered.length === 0 && (<tr><td colSpan={8} className="px-4 py-6 text-center text-gray-500">Sin resultados</td></tr>)}
+              {loading && (<tr><td colSpan={8} className="px-6 py-12 text-center text-gray-500"><Loader2 className="w-5 h-5 animate-spin inline mr-2" />Cargando…</td></tr>)}
+              {error && !loading && (<tr><td colSpan={8} className="px-6 py-8 text-center text-red-600 bg-red-50">{error}</td></tr>)}
+              {!loading && !error && filtered.length === 0 && (<tr><td colSpan={8} className="px-6 py-8 text-center text-gray-500">Sin resultados</td></tr>)}
               {!loading && !error && filtered.map((r, i) => (
-                <tr key={i} className="border-t">
-                  <td className="px-4 py-3 whitespace-nowrap">{formatDate(r.fecha_creacion)}</td>
-                  <td className="px-4 py-3 min-w-[280px]">{r.problema}</td>
-                  <td className="px-4 py-3">{r.sector}</td>
-                  <td className="px-4 py-3">
+                <tr key={i} className={classNames(
+                  "border-t border-gray-100 hover:bg-gray-50/50 transition-colors duration-150",
+                  i % 2 === 0 ? "bg-white" : "bg-gray-50/30"
+                )}>
+                  <td className="px-6 py-4 whitespace-nowrap text-gray-600">{formatDate(r.fecha_creacion)}</td>
+                  <td className="px-6 py-4 min-w-[280px] font-medium">{r.problema}</td>
+                  <td className="px-6 py-4 text-gray-600">{r.sector}</td>
+                  <td className="px-6 py-4">
                     {r.urgencia ? (
-                      <Pill intent={r.urgencia?.toLowerCase().startsWith("crit") ? "crit" : r.urgencia?.toLowerCase().startsWith("mod") ? "warn" : "ok"}>{r.urgencia}</Pill>
+                      <Pill intent={normalize(r.urgencia)?.startsWith("crit") ? "crit" : normalize(r.urgencia)?.startsWith("mod") ? "warn" : "ok"}>{r.urgencia}</Pill>
                     ) : "—"}
                   </td>
-                  <td className="px-4 py-3">{r.responsable || "—"}</td>
-                  <td className="px-4 py-3">{r.estado === "Resuelto" ? <Pill intent="ok">Resuelto</Pill> : <Pill intent="warn">Pendiente</Pill>}</td>
-                  <td className="px-4 py-3 whitespace-nowrap">{formatDate(r.fecha_resolucion)}</td>
-                  <td className="px-4 py-3">{r.imagenes ? (<a href={r.imagenes} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-blue-600 hover:underline"><LinkIcon className="w-4 h-4" /> Abrir carpeta</a>) : "—"}</td>
+                  <td className="px-6 py-4 text-gray-600">{r.responsable || "—"}</td>
+                  <td className="px-6 py-4">{r.estado === "Resuelto" ? <Pill intent="ok">Resuelto</Pill> : <Pill intent="warn">Pendiente</Pill>}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-gray-600">{formatDate(r.fecha_resolucion)}</td>
+                  <td className="px-6 py-4">{r.imagenes ? (<a href={r.imagenes} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-800 hover:underline transition-colors"><LinkIcon className="w-4 h-4" /> Abrir carpeta</a>) : "—"}</td>
                 </tr>
               ))}
             </tbody>
@@ -270,8 +279,8 @@ export default function App() {
         </div>
 
         {/* Pie */}
-        <div className="text-xs text-gray-500 mt-4 text-center">
-          <p>• Desarrollado por el Departamento de IA del Sanatorio </p>
+        <div className="text-xs text-gray-500 mt-6 text-center">
+          <p>• Desarrollado por el Departamento de IA del Sanatorio Boratti.</p>
         </div>
       </div>
     </div>
