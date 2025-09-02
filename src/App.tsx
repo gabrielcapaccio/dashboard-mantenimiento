@@ -230,7 +230,7 @@ export default function App() {
         <div className="grid grid-cols-2 md:grid-cols-6 gap-4 mb-8">
           <Card title="Total" color="gray" icon={<Filter className="w-5 h-5" />}>{kpis.total}</Card>
           <Card title="Pendientes" color="red" icon={<AlertTriangle className="w-5 h-5" />}>{kpis.pend}</Card>
-          <Card title="Resueltos" color="green" icon={<CheckCircle2 className="w-5 h-5" />}>{kpis.res}</Card>
+          <Card title="Resueltos" color="gray" icon={<CheckCircle2 className="w-5 h-5" />}>{kpis.res}</Card>
           <Card title="Leves" color="green">{kpis.leves}</Card>
           <Card title="Moderadas" color="yellow">{kpis.moderadas}</Card>
           <Card title="Críticas" color="red">{kpis.criticas}</Card>
@@ -238,7 +238,7 @@ export default function App() {
 
         {/* Tabla */}
         <div className="overflow-x-auto rounded-2xl border border-gray-200 bg-white shadow-lg">
-          <table className="min-w-full text-sm">
+          <table className="w-full text-sm">
             <thead className="bg-gradient-to-r from-gray-50 to-gray-100 text-gray-700">
               <tr>
                 <th className="px-6 py-4 text-left font-semibold">Creado</th>
@@ -269,7 +269,7 @@ export default function App() {
                     ) : "—"}
                   </td>
                   <td className="px-6 py-4 text-gray-600">{r.responsable || "—"}</td>
-                  <td className="px-6 py-4">{r.estado === "Resuelto" ? <Pill intent="ok">Resuelto</Pill> : <Pill intent="warn">Pendiente</Pill>}</td>
+                  <td className="px-6 py-4">{r.estado === "Resuelto" ? <Pill intent="ok">Resuelto</Pill> : <Pill intent="crit">Pendiente</Pill>}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-gray-600">{formatDate(r.fecha_resolucion)}</td>
                   <td className="px-6 py-4">{r.imagenes ? (<a href={r.imagenes} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-800 hover:underline transition-colors"><LinkIcon className="w-4 h-4" /> Abrir carpeta</a>) : "—"}</td>
                 </tr>
