@@ -280,9 +280,10 @@ export default function App() {
 
         {/* Pie */}
         <div className="text-xs text-gray-500 mt-6 text-center">
-          <p>• Desarrollado por el Departamento de IA del Sanatorio Boratti.</p>
+          <p>• Desarrollado por el Departamento de IA del Sanatorio</p>
         </div>
       </div>
     </div>
   );
 }
+
