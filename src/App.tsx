@@ -176,14 +176,14 @@ export default function App() {
 
   // KPIs con normalización mejorada para urgencias
   const kpis = useMemo(() => {
-    const total = filtered.length;
+    const total = rows.length; // Total siempre muestra todos los casos, no los filtrados
     const pend = filtered.filter(r => r.estado === "Pendiente").length;
     const res = filtered.filter(r => r.estado === "Resuelto").length;
     const leves = filtered.filter(r => normalize(r.urgencia) === "leve").length;
     const moderadas = filtered.filter(r => normalize(r.urgencia) === "moderada").length;
     const criticas = filtered.filter(r => normalize(r.urgencia)?.startsWith("crit")).length;
     return { total, pend, res, leves, moderadas, criticas };
-  }, [filtered]);
+  }, [rows, filtered]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50/30 text-gray-900">
@@ -196,7 +196,7 @@ export default function App() {
             </div>
             <div>
               <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">Dashboard de Mantenimiento</h1>
-              <p className="text-sm text-gray-600">Tabla: {SCHEMA}.{TABLE_NAME}</p>
+              <p className="text-sm text-gray-600">Sistema de control interno del Sanatorio</p>
             </div>
           </div>
           <div className="flex items-center gap-3">
@@ -271,7 +271,7 @@ export default function App() {
                   <td className="px-6 py-4 text-gray-600">{r.responsable || "—"}</td>
                   <td className="px-6 py-4">{r.estado === "Resuelto" ? <Pill intent="ok">Resuelto</Pill> : <Pill intent="crit">Pendiente</Pill>}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-gray-600">{formatDate(r.fecha_resolucion)}</td>
-                  <td className="px-6 py-4">{r.imagenes ? (<a href={r.imagenes} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-800 hover:underline transition-colors"><LinkIcon className="w-4 h-4" /> Abrir carpeta</a>) : "—"}</td>
+                  <td className="px-6 py-4">{r.imagenes ? (<a href={r.imagenes} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-800 hover:underline transition-colors"><LinkIcon className="w-4 h-4" /> <span className="font-bold">Ver</span></a>) : "—"}</td>
                 </tr>
               ))}
             </tbody>
@@ -280,10 +280,9 @@ export default function App() {
 
         {/* Pie */}
         <div className="text-xs text-gray-500 mt-6 text-center">
-          <p>• Desarrollado por el Departamento de IA del Sanatorio</p>
+          <p>• Desarrollado por el Departamento de IA del Sanatorio Boratti.</p>
         </div>
       </div>
     </div>
   );
 }
-
