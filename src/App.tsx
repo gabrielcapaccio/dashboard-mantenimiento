@@ -144,7 +144,7 @@ export default function App() {
     const e = new Set<string>();
     const s = new Set<string>();
     const r = new Set<string>();
-    rows.forEach((row) => {
+    allRows.forEach((row) => {
       if (row.urgencia) u.add(row.urgencia);
       if (row.estado) e.add(row.estado);
       if (row.sector) s.add(row.sector);
@@ -158,20 +158,37 @@ export default function App() {
       sectores: Array.from(s).sort(),
       responsables: Array.from(r).sort(),
     };
-  }, [rows]);
+  }, [allRows]);
 
-  const filtered = rows; // ya filtramos en el SELECT
+  // Filtrado frontend para mantener el total fijo
+  const filtered = useMemo(() => {
+    let result = allRows;
+    
+    if (estado) result = result.filter(r => r.estado === estado);
+    if (urgencia) {
+      if (urgencia === "Crítica") {
+        result = result.filter(r => r.urgencia === "Crítica" || r.urgencia === "Critica");
+      } else {
+        result = result.filter(r => r.urgencia === urgencia);
+      }
+    }
+    if (sector) result = result.filter(r => r.sector === sector);
+    if (responsable) result = result.filter(r => r.responsable === responsable);
+    if (q) result = result.filter(r => r.problema?.toLowerCase().includes(q.toLowerCase()));
+    
+    return result;
+  }, [allRows, estado, urgencia, sector, responsable, q]);
 
   // KPIs con normalización mejorada para urgencias
   const kpis = useMemo(() => {
-    const total = rows.length; // Total siempre muestra todos los casos, no los filtrados
+    const total = allRows.length; // Total siempre muestra todos los casos, no los filtrados
     const pend = filtered.filter(r => r.estado === "Pendiente").length;
     const res = filtered.filter(r => r.estado === "Resuelto").length;
     const leves = filtered.filter(r => normalize(r.urgencia) === "leve").length;
     const moderadas = filtered.filter(r => normalize(r.urgencia) === "moderada").length;
     const criticas = filtered.filter(r => normalize(r.urgencia)?.startsWith("crit")).length;
     return { total, pend, res, leves, moderadas, criticas };
-  }, [rows, filtered]);
+  }, [allRows, filtered]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50/30 text-gray-900">
