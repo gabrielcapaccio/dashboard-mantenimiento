@@ -107,7 +107,7 @@ const Select: React.FC<{ value: string; onChange: (v: string) => void; options: 
 );
 
 export default function App() {
-  const [rows, setRows] = useState<Pedido[]>([]);
+  const [allRows, setAllRows] = useState<Pedido[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -120,25 +120,13 @@ export default function App() {
 
   async function fetchRows() {
     setLoading(true); setError(null);
-    let query = supabase.from<Pedido>(TABLE_NAME).select("*").limit(1000);
-    if (estado) query = query.eq("estado", estado);
-    if (urgencia) {
-      if (urgencia === "Crítica") {
-        // manejar tilde/acentos en datos existentes
-        query = query.in("urgencia", ["Crítica", "Critica"]);
-      } else {
-        query = query.eq("urgencia", urgencia);
-      }
-    }
-    if (sector) query = query.eq("sector", sector);
-    if (responsable) query = query.eq("responsable", responsable);
-    if (q) query = query.ilike("problema", `%${q}%`);
-    const { data, error } = await query;
+    // Siempre traemos todos los datos sin filtros para tener el total completo
+    const { data, error } = await supabase.from<Pedido>(TABLE_NAME).select("*").limit(1000);
     if (error) { setError(error.message); setLoading(false); return; }
-    setRows(data || []); setLoading(false);
+    setAllRows(data || []); setLoading(false);
   }
 
-  useEffect(() => { fetchRows(); }, [estado, urgencia, sector, responsable, q]);
+  useEffect(() => { fetchRows(); }, []);
 
   // Realtime
   useEffect(() => {
